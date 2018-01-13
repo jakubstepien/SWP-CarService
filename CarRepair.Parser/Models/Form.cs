@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace CarRepair.Parser.Models
+{
+    public class Form
+    {
+        public string Id { get; set; }
+
+        public Field[] Fields { get; set; }
+    }
+}
