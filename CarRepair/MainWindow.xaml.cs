@@ -49,11 +49,7 @@ namespace CarRepair
             await Task.Run(() =>
             {
                 tts.Speak(viewModel.Dialog.ErrorMessage ?? "Not recoginized");
-                asr.StartRecognition(new AnswerModel
-                {
-                    FieldName = viewModel.Dialog.FieldName,
-                    Options = (viewModel.Dialog.Answers as OneOfAnswersViewModel).Answers.Select(s => s).ToArray()
-                });
+                StartRecognitionOfCurrentQuestion();
             });
         }
 
@@ -78,11 +74,7 @@ namespace CarRepair
                 }
                 viewModel.Dialog = engine.GetQuestion();
                 //todo obsługa spelling
-                asr.StartRecognition(new AnswerModel
-                {
-                    FieldName = viewModel.Dialog.FieldName,
-                    Options = (viewModel.Dialog.Answers as OneOfAnswersViewModel).Answers.Select(s => s).ToArray()
-                });
+                StartRecognitionOfCurrentQuestion();
                 tts.Speak(viewModel.Dialog.Question);
             })
             .ContinueWith((t) =>
@@ -92,13 +84,18 @@ namespace CarRepair
                     var exception = t.Exception.Flatten();
                     Console.WriteLine("Error :" + Environment.NewLine + exception.ToString());
                     tts.Speak("Error occured, please try again");
-                    asr.StartRecognition(new AnswerModel
-                    {
-                        FieldName = viewModel.Dialog.FieldName,
-                        Options = (viewModel.Dialog.Answers as OneOfAnswersViewModel).Answers.Select(s => s).ToArray()
-                    });
+                    StartRecognitionOfCurrentQuestion();
                 }
             }, TaskScheduler.FromCurrentSynchronizationContext());
+        }
+
+        private void StartRecognitionOfCurrentQuestion()
+        {
+            asr.StartRecognition(new AnswerModel
+            {
+                FieldName = viewModel.Dialog.FieldName,
+                Options = (viewModel.Dialog.Answers as OneOfAnswersViewModel).Answers.Select(s => s).ToArray()
+            }, viewModel.Dialog.XMLGrammar);
         }
     }
 }

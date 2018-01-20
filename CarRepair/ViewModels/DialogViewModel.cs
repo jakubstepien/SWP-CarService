@@ -32,5 +32,6 @@ namespace CarRepair.ViewModels
             set { errorMessage = value; NotifyChanged(); }
         }
 
+        public string XMLGrammar { get; set; }
     }
 }

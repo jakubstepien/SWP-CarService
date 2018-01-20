@@ -38,6 +38,7 @@ namespace CarRepair.Engine
                 Question = field.Prompt,
                 FieldName = field.Name,
                 ErrorMessage = field.NoMatchErrorPrompt,
+                XMLGrammar = field.Grammar.XMLGrammar,
             };
             //dla tego typu bedzie raczej jeden rule
             var rule = field.Grammar.Rules.FirstOrDefault();

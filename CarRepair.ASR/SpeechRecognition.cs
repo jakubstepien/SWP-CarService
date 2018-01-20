@@ -1,5 +1,4 @@
-﻿using CarRepair.ASR.Extensions;
-using CarRepair.ASR.Events;
+﻿using CarRepair.ASR.Events;
 using System.Globalization;
 using System.Runtime.InteropServices.ComTypes;
 using System;
@@ -9,20 +8,21 @@ using System.Text;
 using System.Threading.Tasks;
 using CarRepair.ASR.Models;
 using System.Speech.Recognition;
+using System.Speech.Recognition.SrgsGrammar;
 
 namespace CarRepair.ASR
 {
     public class SpeechRecognition : IDisposable
     {
         CultureInfo culture;
-        AnswerModel answers;
+        AnswerModel currentAnswer;
         SpeechRecognitionEngine sre;
 
         #region Ctor
         public SpeechRecognition(string culture = null)
         {
             if (String.IsNullOrEmpty(culture))
-                culture = "en-GB";
+                culture = "en-Us";
             this.culture = CultureInfo.GetCultureInfo(culture);
             Init();
         }
@@ -68,25 +68,33 @@ namespace CarRepair.ASR
             var answer = new AnswerSelectedEventArgs
             {
                 Result = true,
-                FieldName = answers.FieldName,
+                FieldName = currentAnswer.FieldName,
                 SelectedAnswer = eventArgs.Result.Text,
             };
             SpeechRecognized?.Invoke(this, answer);
         }
 
-        public bool StartRecognition(AnswerModel answerModel, bool multipleRecognitions = false)
+        public bool StartRecognition(AnswerModel answerModel, string xmlGrammar, bool multipleRecognitions = false)
         {
-            answers = answerModel;
-            if (answers == null)
+            currentAnswer = answerModel;
+            if (currentAnswer == null)
                 return false;
             sre.UnloadAllGrammars();
-            sre.LoadGrammar(answers.ToGrammar(culture));
+            sre.LoadGrammar(new Grammar(DeserializeSrgs(xmlGrammar)));
 
             if (multipleRecognitions)
                 sre.RecognizeAsync(RecognizeMode.Multiple);
             else
                 sre.RecognizeAsync();
             return true;
+        }
+
+        public SrgsDocument DeserializeSrgs(string xmlGrammar)
+        {
+            using(var xmlReader = System.Xml.XmlReader.Create(new System.IO.StringReader(xmlGrammar)))
+            {
+                return new SrgsDocument(xmlReader);
+            }
         }
 
         public void StopRecognition()

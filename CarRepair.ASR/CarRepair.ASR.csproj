@@ -46,7 +46,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Events\AnswerSelectedEventArgs.cs" />
-    <Compile Include="Extensions\AnswerModelExtensions.cs" />
     <Compile Include="Models\AnswerModel.cs" />
     <Compile Include="SpeechRecognition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

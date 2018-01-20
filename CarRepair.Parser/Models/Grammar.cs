@@ -9,5 +9,7 @@ namespace CarRepair.Parser.Models
     public class Grammar
     {
         public Rule[] Rules { get; set; }
+
+        public string XMLGrammar { get; set; }
     }
 }

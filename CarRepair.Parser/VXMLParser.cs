@@ -78,8 +78,14 @@ namespace CarRepair.Parser
 
         private Grammar ParseGrammar(XElement grammarElement)
         {
+            var grammarXml = grammarElement.ToString();
+            var isValid = GrammarValidator.ValidateAndFixGrammar(ref grammarXml);
+            if (!isValid)
+            {
+                throw new ArgumentException("Grammar is invalid - " + grammarElement.ToString());
+            }
             var rules = grammarElement.GetElementsByName("rule").ToArray();
-            var grammar = new Grammar { Rules = new Rule[rules.Length], };
+            var grammar = new Grammar { Rules = new Rule[rules.Length], XMLGrammar = grammarXml };
             for (int i = 0; i < rules.Length; i++)
             {
                 var ruleItems = rules[i].Elements().ToArray();
