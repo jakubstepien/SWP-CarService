@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using CarRepair.ASR.Models;
 using System.Speech.Recognition;
 using System.Speech.Recognition.SrgsGrammar;
+using System.Configuration;
 
 namespace CarRepair.ASR
 {
@@ -22,7 +23,9 @@ namespace CarRepair.ASR
         public SpeechRecognition(string culture = null)
         {
             if (String.IsNullOrEmpty(culture))
-                culture = "en-Us";
+            {
+                culture = ConfigurationManager.AppSettings["defaultCulture"];
+            }
             this.culture = CultureInfo.GetCultureInfo(culture);
             Init();
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Speech.Recognition.SrgsGrammar;
@@ -19,10 +20,10 @@ namespace CarRepair.Parser.Utils
         public static bool ValidateAndFixGrammar(ref string xmlGrammar)
         {
             var node = System.Xml.Linq.XElement.Parse(xmlGrammar);
-
+            var culture = ConfigurationManager.AppSettings["defaultCulture"];
             if (node.Attribute(System.Xml.Linq.XNamespace.Xml + "lang") == null)
             {
-                xmlGrammar = xmlGrammar.Replace("<grammar", "<grammar xml:lang=\"en-US\"");
+                xmlGrammar = xmlGrammar.Replace("<grammar", $"<grammar xml:lang=\"{culture}\"");
             }
             if (string.IsNullOrEmpty(node.Name.Namespace.ToString()))
             {
