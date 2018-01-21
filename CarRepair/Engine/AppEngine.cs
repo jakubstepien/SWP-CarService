@@ -1,4 +1,6 @@
-﻿using CarRepair.ViewModels;
+﻿using Jint.Native;
+using System.Text.RegularExpressions;
+using CarRepair.ViewModels;
 using System.Threading;
 using System;
 using System.Collections.Generic;
@@ -17,6 +19,7 @@ namespace CarRepair.Engine
         string currentForm = "";
         string nextField = "";
 
+        public bool IsDialogFinished { get; private set; } = false;
 
         public void Init()
         {
@@ -24,6 +27,7 @@ namespace CarRepair.Engine
             var forms = parser.Parse(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, currentFile));
             currentForm = forms.First().Id;
             filesForms.Add(currentFile, forms);
+            IsDialogFinished = false;
         }
 
         public DialogViewModel GetQuestion()
@@ -35,7 +39,7 @@ namespace CarRepair.Engine
             }
             var question = new DialogViewModel
             {
-                Question = field.Prompt,
+                Question = GetPrompt(field),
                 FieldName = field.Name,
                 ErrorMessage = field.NoMatchErrorPrompt,
                 XMLGrammar = field.Grammar.XMLGrammar,
@@ -54,6 +58,20 @@ namespace CarRepair.Engine
 
             }
             return question;
+        }
+
+        private string GetPrompt(Field field)
+        {
+            const string valueRegex = "@@(.*?)@@";
+            var newPrompt = Regex.Replace(field.Prompt, valueRegex, m => {
+                var val = m.Groups[1].Value;
+                if (answers.ContainsKey(val))
+                {
+                    return answers[val];
+                }
+                return "undefined";
+            });
+            return newPrompt;
         }
 
         private Field GetNextField()
@@ -78,52 +96,25 @@ namespace CarRepair.Engine
             answers.Add(fieldName, answer);
             var form = filesForms[currentFile].First(w => w.Id == currentForm);
             var field = form.Fields.First(f => f.Name == fieldName);
-            if (string.IsNullOrEmpty(field.FilledJavascript))
-            {
-                //jeżeli nie ma kodu do switcha to idziemy do nastepnego pola
-                SetNextFieldInSequence(fieldName, form);
-                return;
-            }
 
-            var intr = new Javascript.Interpreter().GetGotoValue(field.GotoVariable, field.FilledJavascript, answers);
-            //id do innego formularza
-            if (intr.StartsWith("#"))
+            var nextFieldInForm = form.Fields.Where(w => !answers.ContainsKey(w.Name) && CheckCond(w)).FirstOrDefault();
+            nextField = nextFieldInForm?.Name;
+            if(nextFieldInForm is null)
             {
-                foreach (var f in filesForms[currentFile])
-                {
-                    if ("#" + f.Id == intr)
-                    {
-                        currentForm = f.Id;
-                        nextField = null;
-                        return;
-                    }
-                }
-
-            }
-            else if (intr.EndsWith(".vxml"))
-            {
-                if (!filesForms.ContainsKey(intr))
-                {
-                    var forms = new Parser.VXMLParser().Parse(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, intr));
-                    filesForms.Add(intr, forms);
-                    currentFile = intr;
-                }
+                IsDialogFinished = true;
             }
         }
 
-        private void SetNextFieldInSequence(string fieldName, Form form)
+        private bool CheckCond(Field field)
         {
-            var nextFieldInForm = form.Fields.SkipWhile(s => s.Name != fieldName).ElementAtOrDefault(1);
-            if (nextFieldInForm != null)
+            if (string.IsNullOrEmpty(field.Cond))
             {
-                nextField = nextFieldInForm.Name;
+                return true;
             }
-            else
-            {
-                var nextForm = filesForms[currentFile].SkipWhile(s => s.Id != currentForm).ElementAt(1);
-                currentForm = nextForm.Id;
-            }
+            var jsInterpreter = new Javascript.Interpreter();
+            return jsInterpreter.GetCondResult(field.Cond, answers);
         }
+
 
         private DialogViewModel GetRecordQuestion(Field field)
         {

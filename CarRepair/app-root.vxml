@@ -1,25 +1,132 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<vxml xmlns="http://www.w3.org/2001/vxml"
-      version="2.1"
-      xml:lang="en-US"
-      xml:base="https://studio.tellme.com/vxml-tutorial/">
+<vxml version="2.1">
+  <form id="main-form">
+    <block>
+      <prompt>Welcome to car service </prompt>
+    </block>
 
-  <script>
-    <![CDATA[
-         var doNewPlaneRes = false;
-         var doNewHotelRes = false;
-         var doNewCarRes = false;
-         var doChangePlaneRes = false;
-         var doChangeHotelRes = false;
-         var doChangeCarRes = false;
-         var doRestaurantRec = false;
-      ]]>
-  </script>
+    <field name="marka" >
+      <prompt>What is your car's brand</prompt>
+      <catch event="noinput nomatch">
+        Sorry I didn't understand that
+      </catch>
+      <grammar root="top">
+        <rule id="top">
+          <one-of>
+            <item>fiat</item>
+            <item>skoda</item>
+            <item>toyota</item>
+            <item>renault</item>
+          </one-of>
+        </rule>
+      </grammar>
+    </field>
 
-  <form id="main">
-    <field name="test">
-      <prompt>It's only a test prompt say yes or no</prompt>
-      <grammar version="1.0" root="top">
+    <field name="rocznik" type="number">
+      <prompt>What is the production year of the car?</prompt>
+      <catch event="noinput nomatch">
+        Sorry I didn't understand that
+      </catch>
+    </field>
+
+    <field name="usterka" >
+      <prompt>What is car's fault.</prompt>
+      <catch event="noinput nomatch">
+        Sorry I didn't understand that
+      </catch>
+      <grammar root="top">
+        <rule id="top">
+          <one-of>
+            <item>doors</item>
+            <item>engine</item>
+            <item>tires</item>
+          </one-of>
+        </rule>
+      </grammar>
+    </field>
+
+    <field name = "drzwi" cond ="usterka=='doors'"  type="digits">
+      <prompt>Say door number going clockwise from driver's seat.</prompt>
+    </field>
+
+    <field name = "spalanie" cond ="usterka=='engine'" type ="number">
+      <prompt>What is your car's fuel consumption.</prompt>
+    </field>
+
+    <field name = "rodzajOpon" cond ="usterka=='tires'">
+      <grammar root ="top">
+        <rule id="top">
+          <one-of>
+            <item>summer</item>
+            <item>winter</item>
+          </one-of>
+        </rule>
+      </grammar>
+      <prompt>Do you have winter or summer tires</prompt>
+    </field>
+
+    <field name ="naped" cond="usterka=='opony' &amp;&amp; spalanie">
+      <prompt>What is propulsion system of your car</prompt>
+      <grammar root="top">
+        <rule id="top">
+          <one-of>
+            <item>petrol</item>
+            <item>gas</item>
+            <item>diesel</item>
+          </one-of>
+        </rule>
+      </grammar>
+    </field>
+
+    <var name ="cost"/>
+    <var name = "data"/>
+
+    <field name = "cenaNaprawy" >
+      <grammar root ="top">
+        <rule id="top">
+          <one-of>
+            <item>yes</item>
+            <item>no</item>
+          </one-of>
+        </rule>
+      </grammar>
+      <prompt>
+        Repair will cost <value expr="cost"/>, Is it acceptable?
+      </prompt>
+
+      <filled>
+        <if cond="cenaNaprawy=='nie'">
+          <prompt>Goodbye</prompt>
+          <exit/>
+        </if>
+      </filled>
+    </field>
+
+
+    <field name = "dataNaprawy" >
+      <grammar root ="top">
+        <rule id="top">
+          <one-of>
+            <item>yes</item>
+            <item>no</item>
+          </one-of>
+        </rule>
+      </grammar>
+      <prompt>
+        Avialiable repar date is <value expr="data"/>, Is it acceptable?
+      </prompt>
+
+      <filled>
+        <if cond="dataNaprawy=='no'">
+          <prompt>Goodbye</prompt>
+          <exit/>
+        </if>
+      </filled>
+    </field>
+
+    <field name="maKonto">
+      <prompt>Do you have an account here?</prompt>
+      <grammar root ="top">
         <rule id="top">
           <one-of>
             <item>yes</item>
@@ -28,123 +135,43 @@
         </rule>
       </grammar>
     </field>
-    <field name="main_selection">
-      <prompt>
-        Welcome to Contoso Travel. Say new reservation, change reservation, or restaurant recommendation.
-      </prompt>
-      <grammar version="1.0" root="top">
+
+    <field name="pin" type="digits" cond="maKonto == 'tak'">
+      <prompt>Say your pin?</prompt>
+    </field>
+
+    <field name = "imie" cond="maKonto == 'nie'">
+      <prompt>Say your first name</prompt>
+      <grammar root="top">
         <rule id="top">
           <one-of>
-            <item>new reservation</item>
-            <item>change reservation</item>
-            <item>restaurant recommendation</item>
+            <item>John</item>
+            <item>Kate</item>
           </one-of>
         </rule>
       </grammar>
-      <catch event="noinput nomatch">
-        Sorry. Didn't get that. Please try again.
-        <reprompt/>
-      </catch>
-      <filled>
-        <script>
-          <![CDATA[
-                  var next_destination = "";
-                  switch (main_selection){
-
-                  case "new reservation" :
-                    next_destination = "#new_reservation";
-                    break;
-                    
-                  case "change reservation" :
-                    next_destination = "change-reservation.vxml";
-                    break;
-                    
-                  case "restaurant recommendation" :
-                    next_destination = "#restaurant";
-                    break;
-                    
-                  default:
-                    next_destination = "error.vxml";
-                    break;
-                 }
-               ]]>
-        </script>
-        <goto expr="next_destination"/>
-      </filled>
     </field>
-  </form>
-  <form id ="new_reservation">
-    <field name="new_reservation_type">
-      <prompt>
-        What type of reservation do you want to make? Say plane, hotel, or car. You can combine types by saying plane and hotel for example.
-      </prompt>
-      <grammar version="1.0" root="top">
+
+    <field name = "nazwisko" cond="maKonto == 'nie'">
+      <prompt>Say your last name</prompt>
+      <grammar root="top">
         <rule id="top">
           <one-of>
-            <item>plane</item>
-            <item>hotel</item>
-            <item>car</item>
-            <item>plane and hotel</item>
-            <item>hotel and car</item>
-            <item>plane and car</item>
-            <item>plane and hotel and car</item>
+            <item>Smith</item>
+            <item>Brown</item>
           </one-of>
         </rule>
       </grammar>
-
-      <catch event="noinput nomatch">
-        Sorry. Didn't get that. Please try again.
-        <reprompt/>
-      </catch>
-
-      <filled>
-        <script>
-          <![CDATA[
-                  var next_destination = "";
-                  switch (new_reservation_type){
-
-                  case "plane" :
-                    next_destination = "new-plane.vxml";
-                    break;
-
-                  case "hotel" :
-                    next_destination = "new-hotel.vxml";
-                    break;
-
-                  case "car" :
-                    next_destination = "new-car.vxml";
-                    break;
-                    
-                  case "plane and hotel" :
-                    next_destination = "new-plane.vxml";
-                    doNewHotelRes = true;
-                    break;
-
-                  case "plane and car" :
-                    next_destination = "new-plane.vxml";
-                    doNewCarRes = true;
-                    break;
-
-                  case "hotel and car" :
-                    next_destination = "new-hotel.vxml";
-                    doNewCarRes = true;
-                    break;
-                    
-                  case "plane and hotel and car" :
-                    next_destination = "new-plane.vxml";
-                    doNewHotelRes = true;
-                    doNewCarRes = true;
-                    break;
-
-                  default:
-                    next_destination = "error.vxml";
-                    break;
-                 }
-               ]]>
-        </script>
-
-        <goto expr="next_destination"/>
-      </filled>
     </field>
+
+    <field name = "telefon" type ="phone" cond="maKonto == 'nie'">
+      <prompt>Say your phone number</prompt>
+    </field>
+
+
+    <block>
+      <prompt>You have been registered for repair.</prompt>
+      <exit/>
+    </block>
   </form>
 </vxml>

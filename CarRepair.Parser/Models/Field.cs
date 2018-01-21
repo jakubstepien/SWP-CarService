@@ -24,8 +24,8 @@ namespace CarRepair.Parser.Models
 
         public FieldType FieldType { get; set; }
 
-        public string FilledJavascript { get; set; }
-
         public Grammar Grammar { get; set; }
+
+        public string Cond { get; set; }
     }
 }

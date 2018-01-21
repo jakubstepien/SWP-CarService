@@ -1,4 +1,5 @@
-﻿using CarRepair.Parser.Models;
+﻿using System.Text.RegularExpressions;
+using CarRepair.Parser.Models;
 using System.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,8 @@ namespace CarRepair.Parser
     {
         public Form[] Parse(string src)
         {
+            FieldGrammarType.Number.LoadGrammar();
+
             XDocument document = XDocument.Load(src);
             if (document.Root.Name.LocalName.ToLower() != "vxml")
             {
@@ -38,7 +41,7 @@ namespace CarRepair.Parser
             var fieldTypes = new string[] { "field", "record" };
             var form = new Form()
             {
-                Id = formElement.GetAttributeByName("id").Value
+                Id = formElement.GetAttributeByName("id")?.Value
             };
             form.Fields = formElement.Elements()
                 .Select(s =>
@@ -65,19 +68,37 @@ namespace CarRepair.Parser
                 Name = fieldElement.GetAttributeByName("name")?.Value?.Trim(),
                 FieldType = FieldType.RegularField,
                 NoMatchErrorPrompt = fieldElement.GetElementByName("catch")?.Value?.Trim(),
-                Prompt = fieldElement.GetElementByName("prompt")?.Value?.Trim(),
-
+                Prompt = ParsePrompt(fieldElement),
+                Cond = fieldElement.GetAttributeByName("cond")?.Value?.Trim()
             };
             var filledElement = fieldElement.GetElementByName("filled");
-            field.FilledJavascript = filledElement?.GetElementByName("script")?.Value?.Trim();
             field.GotoVariable = filledElement?.GetElementByName("goto")?.GetAttributeByName("expr")?.Value?.Trim();
             var grammar = fieldElement.GetElementByName("grammar");
-            field.Grammar = ParseGrammar(grammar);
+            var type = fieldElement.GetAttributeByName("type")?.Value?.Trim().ToFieldGrammarType();
+            field.Grammar = ParseGrammar(grammar, type);
             return field;
         }
 
-        private Grammar ParseGrammar(XElement grammarElement)
+        private static string ParsePrompt(XElement fieldElement)
         {
+            const string valRegex= "<value\\s*expr=\"(.*?)\"\\s*\\/>";
+            var prompt = fieldElement.GetElementByName("prompt");
+            var promptText = prompt?.Value?.Trim();
+            //jedyny element jaki będzie mieć to raczej val
+            if (prompt.Nodes().Any(a => a.NodeType == System.Xml.XmlNodeType.Element))
+            {
+                var actualText = string.Concat(prompt.Nodes()).Trim();
+                promptText = Regex.Replace(actualText, valRegex, m => "@@" + m.Groups[1] + "@@");
+            }
+
+            return promptText;
+        }
+
+        private Grammar ParseGrammar(XElement grammarElement, FieldGrammarType? type)
+        {
+            if (type.HasValue)
+                return type.Value.LoadGrammar();
+
             var grammarXml = grammarElement.ToString();
             var isValid = GrammarValidator.ValidateAndFixGrammar(ref grammarXml);
             if (!isValid)

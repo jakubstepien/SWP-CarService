@@ -64,6 +64,7 @@ namespace CarRepair.ASR
         #endregion
 
         public event EventHandler<AnswerSelectedEventArgs> SpeechRecognized;
+
         public event EventHandler SpeechNotRecognized;
 
         private void HandleSpeechRecognized(object sender, SpeechRecognizedEventArgs eventArgs)
@@ -72,7 +73,7 @@ namespace CarRepair.ASR
             {
                 Result = true,
                 FieldName = currentAnswer.FieldName,
-                SelectedAnswer = eventArgs.Result.Text,
+                SelectedAnswer = eventArgs?.Result?.Semantics?.Value?.ToString() ?? eventArgs.Result.Text,
             };
             SpeechRecognized?.Invoke(this, answer);
         }

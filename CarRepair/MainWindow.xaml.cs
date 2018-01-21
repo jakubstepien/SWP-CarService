@@ -55,6 +55,7 @@ namespace CarRepair
 
         private void SpeechRecognized(object sender, ASR.Events.AnswerSelectedEventArgs e)
         {
+            currentVarrialbes.Varriables.Items.Add(new { Name = e.FieldName, Value = e.SelectedAnswer });
             SetNewQuestion(e);
         }
 
@@ -68,14 +69,16 @@ namespace CarRepair
         {
             return Task.Run(() =>
             {
-                if(previousAnswer != null)
+                if (previousAnswer != null)
                 {
                     engine.AddAnswer(previousAnswer.FieldName, previousAnswer.SelectedAnswer);
                 }
-                viewModel.Dialog = engine.GetQuestion();
-                //todo obsługa spelling
-                StartRecognitionOfCurrentQuestion();
-                tts.Speak(viewModel.Dialog.Question);
+                if (!engine.IsDialogFinished)
+                {
+                    viewModel.Dialog = engine.GetQuestion();
+                    StartRecognitionOfCurrentQuestion();
+                    tts.Speak(viewModel.Dialog.Question);
+                }
             })
             .ContinueWith((t) =>
             {
@@ -91,10 +94,22 @@ namespace CarRepair
 
         private void StartRecognitionOfCurrentQuestion()
         {
+            string[] options = null;
+            switch (viewModel.Dialog.Answers)
+            {
+                case DictationAnswerViewModel d:
+                    options = new[] { d.Label };
+                    break;
+                case OneOfAnswersViewModel many:
+                    options = (viewModel.Dialog.Answers as OneOfAnswersViewModel).Answers.Select(s => s).ToArray();
+                    break;
+                default:
+                    break;
+            }
             asr.StartRecognition(new AnswerModel
             {
                 FieldName = viewModel.Dialog.FieldName,
-                Options = (viewModel.Dialog.Answers as OneOfAnswersViewModel).Answers.Select(s => s).ToArray()
+                Options = options,
             }, viewModel.Dialog.XMLGrammar);
         }
     }

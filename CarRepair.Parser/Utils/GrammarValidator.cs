@@ -27,11 +27,15 @@ namespace CarRepair.Parser.Utils
             }
             if (string.IsNullOrEmpty(node.Name.Namespace.ToString()))
             {
-                xmlGrammar = xmlGrammar.Replace("<grammar", "<grammar xmlns=\"http://www.w3.org/2001/06/grammar\"");
+                xmlGrammar = xmlGrammar.Replace("<grammar", "<grammar xmlns=\"http://www.w3.org/2001/06/grammar\" ");
             }
             else
             {
-                xmlGrammar = Regex.Replace(xmlGrammar, "xmlns=\".*?\"", "xmlns=\"http://www.w3.org/2001/06/grammar\"");
+                xmlGrammar = Regex.Replace(xmlGrammar, "xmlns=\".*?\"", "xmlns=\"http://www.w3.org/2001/06/grammar\" ");
+            }
+            if(node.Attribute("version") == null)
+            {
+                xmlGrammar = xmlGrammar.Replace("<grammar", "<grammar version=\"1.0\" ");
             }
             using (var reader = System.Xml.XmlReader.Create(new StringReader(xmlGrammar)))
             {

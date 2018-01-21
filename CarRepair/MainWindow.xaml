@@ -6,6 +6,13 @@
         xmlns:local="clr-namespace:CarRepair"
         xmlns:views="clr-namespace:CarRepair.View"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
-    <views:DialogView DataContext="{Binding Dialog}" HorizontalAlignment="Stretch"></views:DialogView>
+        Title="MainWindow" Height="720" Width="1024">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+        <views:DialogView Grid.Column="0" DataContext="{Binding Dialog}" HorizontalAlignment="Stretch"></views:DialogView>
+        <views:CurrentVariablesView Grid.Column="1" x:Name="currentVarrialbes"/>
+    </Grid>
 </Window>
