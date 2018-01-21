@@ -27,5 +27,7 @@ namespace CarRepair.Parser.Models
         public Grammar Grammar { get; set; }
 
         public string Cond { get; set; }
+
+        public FilledIfElement[] Filled { get; set; }
     }
 }

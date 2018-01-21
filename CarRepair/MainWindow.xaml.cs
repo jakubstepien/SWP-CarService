@@ -18,6 +18,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using CarRepair.Engine;
+using CarRepair.Engine.Events;
 
 namespace CarRepair
 {
@@ -33,15 +34,18 @@ namespace CarRepair
 
         public MainWindow()
         {
-            engine = new AppEngine();
             viewModel = new MainWindowViewModel();
             DataContext = viewModel;
+
+            InitializeComponent();
+
+            engine = new AppEngine();
             tts = new TTS.SpeechSynth();
             asr = new SpeechRecognition();
             asr.SpeechRecognized += SpeechRecognized;
             asr.SpeechNotRecognized += SpeechNotRecognized;
-            InitializeComponent();
             Loaded += StartEngine;
+            engine.DialogFinished += HandleDialogFinished;
         }
 
         private async void SpeechNotRecognized(object sender, EventArgs e)
@@ -62,7 +66,15 @@ namespace CarRepair
         private void StartEngine(object sender, RoutedEventArgs e)
         {
             engine.Init();
+            viewModel.DialogRunning = true;
             SetNewQuestion();
+        }
+
+        private void HandleDialogFinished(object sender, DialogFinishedEvent e)
+        {
+            viewModel.DialogRunning = false;
+            viewModel.InfoText = string.IsNullOrEmpty(e.Prompt) ? "You have been registered for repair." : e.Prompt;
+            tts.Speak(viewModel.InfoText);
         }
 
         private Task SetNewQuestion(ASR.Events.AnswerSelectedEventArgs previousAnswer = null)

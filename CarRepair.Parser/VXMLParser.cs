@@ -69,7 +69,8 @@ namespace CarRepair.Parser
                 FieldType = FieldType.RegularField,
                 NoMatchErrorPrompt = fieldElement.GetElementByName("catch")?.Value?.Trim(),
                 Prompt = ParsePrompt(fieldElement),
-                Cond = fieldElement.GetAttributeByName("cond")?.Value?.Trim()
+                Cond = fieldElement.GetAttributeByName("cond")?.Value?.Trim(),
+                Filled = ParseFilledIfs(fieldElement),
             };
             var filledElement = fieldElement.GetElementByName("filled");
             field.GotoVariable = filledElement?.GetElementByName("goto")?.GetAttributeByName("expr")?.Value?.Trim();
@@ -79,10 +80,24 @@ namespace CarRepair.Parser
             return field;
         }
 
-        private static string ParsePrompt(XElement fieldElement)
+        private FilledIfElement[] ParseFilledIfs(XElement field)
+        {
+            var filled = field.GetElementByName("filled");
+            if (filled is null)
+                return new FilledIfElement[0];
+            var ifs = filled.GetElementsByName("if").Select(s => new FilledIfElement
+            {
+                Type = s.GetElementByName("exit") != null ? FilledIfType.ExitIf : FilledIfType.Other,
+                Cond = s.GetAttributeByName("cond").Value,
+                Prompt = ParsePrompt(s),
+            }).ToArray();
+            return ifs;
+        }
+
+        private static string ParsePrompt(XElement element)
         {
             const string valRegex= "<value\\s*expr=\"(.*?)\"\\s*\\/>";
-            var prompt = fieldElement.GetElementByName("prompt");
+            var prompt = element.GetElementByName("prompt");
             var promptText = prompt?.Value?.Trim();
             //jedyny element jaki będzie mieć to raczej val
             if (prompt.Nodes().Any(a => a.NodeType == System.Xml.XmlNodeType.Element))

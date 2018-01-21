@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models\Field.cs" />
+    <Compile Include="Models\FilledIfElement.cs" />
     <Compile Include="Models\Form.cs" />
     <Compile Include="Models\Grammar.cs" />
     <Compile Include="Models\OneOfRule.cs" />

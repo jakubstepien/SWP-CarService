@@ -12,6 +12,7 @@ namespace CarRepair.Engine.Javascript
     {
         public bool GetCondResult(string condCode, Dictionary<string, string> variables)
         {
+            condCode = condCode.Replace("&amp;", "&");
             var engine = new Jint.Engine();
             foreach (var variable in variables)
             {

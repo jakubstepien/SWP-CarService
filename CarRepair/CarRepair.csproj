@@ -61,7 +61,10 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Engine\AppEngine.cs" />
+    <Compile Include="Engine\Events\DialogFinishedEvent.cs" />
     <Compile Include="Engine\Javascript\Interpreter.cs" />
+    <Compile Include="Utils\BoolVisibilityConverter.cs" />
+    <Compile Include="Utils\NullVisibilityConverter.cs" />
     <Compile Include="ViewModels\AnswersViewModel.cs" />
     <Compile Include="ViewModels\BaseViewModel.cs" />
     <Compile Include="ViewModels\DialogViewModel.cs" />

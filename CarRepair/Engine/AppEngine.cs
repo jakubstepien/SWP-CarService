@@ -1,4 +1,5 @@
-﻿using Jint.Native;
+﻿using CarRepair.Engine.Events;
+using Jint.Native;
 using System.Text.RegularExpressions;
 using CarRepair.ViewModels;
 using System.Threading;
@@ -20,6 +21,8 @@ namespace CarRepair.Engine
         string nextField = "";
 
         public bool IsDialogFinished { get; private set; } = false;
+
+        public event EventHandler<DialogFinishedEvent> DialogFinished;
 
         public void Init()
         {
@@ -57,6 +60,13 @@ namespace CarRepair.Engine
                 };
 
             }
+            else if(rule.Items.Length == 1)
+            {
+                question.Answers = new DictationAnswerViewModel
+                {
+                    Label = rule.Items[0].Content,
+                };
+            }
             return question;
         }
 
@@ -89,19 +99,38 @@ namespace CarRepair.Engine
 
         public void AddAnswer(string fieldName, string answer)
         {
+            //dodaj odpowiedz
             if (answers.ContainsKey(fieldName))
             {
                 answers.Remove(fieldName);
             }
             answers.Add(fieldName, answer);
+
+            //znajdz pole
             var form = filesForms[currentFile].First(w => w.Id == currentForm);
             var field = form.Fields.First(f => f.Name == fieldName);
 
+            //uruchom ify
+            var jsInterpreter = new Javascript.Interpreter();
+            var ifsToRun = field.Filled.Where(w => jsInterpreter.GetCondResult(w.Cond, answers));
+
+            //Jak dojdą kolejne ify to trzeba dodać obsługe, dla other nic nie robimy?
+            var exitIf = ifsToRun.FirstOrDefault(a => a.Type == FilledIfType.ExitIf);
+            if (exitIf != null)
+            {
+                IsDialogFinished = true;
+                DialogFinished?.Invoke(this, new DialogFinishedEvent { Prompt = exitIf.Prompt });
+                nextField = "";
+                return;
+            }
+
+            //ustaw następne pole
             var nextFieldInForm = form.Fields.Where(w => !answers.ContainsKey(w.Name) && CheckCond(w)).FirstOrDefault();
             nextField = nextFieldInForm?.Name;
             if(nextFieldInForm is null)
             {
                 IsDialogFinished = true;
+                DialogFinished?.Invoke(this, new DialogFinishedEvent());
             }
         }
 

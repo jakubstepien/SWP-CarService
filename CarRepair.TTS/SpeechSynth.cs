@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Speech.Synthesis;
+using System.Configuration;
 
 namespace CarRepair.TTS
 {
@@ -21,7 +22,7 @@ namespace CarRepair.TTS
 
         public void Speak(string text)
         {
-            PromptBuilder pb = new PromptBuilder(CultureInfo.GetCultureInfo("en-GB"));
+            PromptBuilder pb = new PromptBuilder(CultureInfo.GetCultureInfo(ConfigurationManager.AppSettings["defaultCulture"]));
             pb.AppendText(text);
             tts.Speak(pb);
         }

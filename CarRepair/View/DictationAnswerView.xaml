@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:CarRepair.View"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
-    <Grid>
-        <Label Content="{Binding Label}" />
-    </Grid>
+    <DockPanel>
+        <Label HorizontalAlignment="Center" FontSize="30" VerticalAlignment="Center" Content="{Binding Label}" />
+    </DockPanel>
 </UserControl>

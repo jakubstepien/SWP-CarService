@@ -65,7 +65,7 @@
       <prompt>Do you have winter or summer tires</prompt>
     </field>
 
-    <field name ="naped" cond="usterka=='opony' &amp;&amp; spalanie">
+    <field name ="naped" cond="usterka=='engine' &amp;&amp; spalanie != null">
       <prompt>What is propulsion system of your car</prompt>
       <grammar root="top">
         <rule id="top">
@@ -95,7 +95,7 @@
       </prompt>
 
       <filled>
-        <if cond="cenaNaprawy=='nie'">
+        <if cond="cenaNaprawy=='no'">
           <prompt>Goodbye</prompt>
           <exit/>
         </if>
@@ -113,7 +113,7 @@
         </rule>
       </grammar>
       <prompt>
-        Avialiable repar date is <value expr="data"/>, Is it acceptable?
+        Available repar date is <value expr="data"/>, Is it acceptable?
       </prompt>
 
       <filled>
@@ -136,11 +136,11 @@
       </grammar>
     </field>
 
-    <field name="pin" type="digits" cond="maKonto == 'tak'">
+    <field name="pin" type="digits" cond="maKonto == 'yes'">
       <prompt>Say your pin?</prompt>
     </field>
 
-    <field name = "imie" cond="maKonto == 'nie'">
+    <field name = "imie" cond="maKonto == 'no'">
       <prompt>Say your first name</prompt>
       <grammar root="top">
         <rule id="top">
@@ -152,7 +152,7 @@
       </grammar>
     </field>
 
-    <field name = "nazwisko" cond="maKonto == 'nie'">
+    <field name = "nazwisko" cond="maKonto == 'no'">
       <prompt>Say your last name</prompt>
       <grammar root="top">
         <rule id="top">
@@ -164,7 +164,7 @@
       </grammar>
     </field>
 
-    <field name = "telefon" type ="phone" cond="maKonto == 'nie'">
+    <field name = "telefon" type ="phone" cond="maKonto == 'no'">
       <prompt>Say your phone number</prompt>
     </field>
 
