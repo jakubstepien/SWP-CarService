@@ -33,11 +33,13 @@
       </catch>
       <grammar root="top">
         <rule id="top">
+          <ruleref special="GARBAGE" />
           <one-of>
             <item>doors</item>
             <item>engine</item>
             <item>tires</item>
           </one-of>
+          <ruleref special="GARBAGE" />
         </rule>
       </grammar>
     </field>
@@ -53,10 +55,12 @@
     <field name = "rodzajOpon" cond ="usterka=='tires'">
       <grammar root ="top">
         <rule id="top">
+          <ruleref special="GARBAGE" />
           <one-of>
             <item>summer</item>
             <item>winter</item>
           </one-of>
+          <ruleref special="GARBAGE" />
         </rule>
       </grammar>
       <prompt>Do you have winter or summer tires</prompt>
@@ -66,11 +70,13 @@
       <prompt>What is propulsion system of your car</prompt>
       <grammar root="top">
         <rule id="top">
+          <ruleref special="GARBAGE" />
           <one-of>
             <item>petrol</item>
             <item>gas</item>
             <item>diesel</item>
           </one-of>
+          <ruleref special="GARBAGE" />
         </rule>
       </grammar>
     </field>
@@ -81,10 +87,12 @@
     <field name = "cenaNaprawy" >
       <grammar root ="top">
         <rule id="top">
+          <ruleref special="GARBAGE" />
           <one-of>
             <item>yes</item>
             <item>no</item>
           </one-of>
+          <ruleref special="GARBAGE" />
         </rule>
       </grammar>
       <prompt>
@@ -103,10 +111,12 @@
     <field name = "dataNaprawy" >
       <grammar root ="top">
         <rule id="top">
+          <ruleref special="GARBAGE" />
           <one-of>
             <item>yes</item>
             <item>no</item>
           </one-of>
+          <ruleref special="GARBAGE" />
         </rule>
       </grammar>
       <prompt>
@@ -125,10 +135,12 @@
       <prompt>Do you have an account here?</prompt>
       <grammar root ="top">
         <rule id="top">
+          <ruleref special="GARBAGE" />
           <one-of>
             <item>yes</item>
             <item>no</item>
           </one-of>
+          <ruleref special="GARBAGE" />
         </rule>
       </grammar>
     </field>

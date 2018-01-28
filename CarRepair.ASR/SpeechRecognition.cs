@@ -71,10 +71,27 @@ namespace CarRepair.ASR
                 {
                     Result = true,
                     FieldName = currentAnswer.FieldName,
-                    SelectedAnswer = eventArgs?.Result?.Semantics?.Value?.ToString() ?? eventArgs.Result.Text,
+                    SelectedAnswer = GetProperResult(eventArgs),
                 };
                 SpeechRecognized?.Invoke(this, answer);
             }
+        }
+
+        private static string GetProperResult(RecognizeCompletedEventArgs eventArgs)
+        {
+            var sementicResult = eventArgs?.Result?.Semantics?.Value?.ToString();
+            //jak jest bardziej skomplikowana gramatyka z tag np. number
+            if (sementicResult != null)
+                return sementicResult;
+            //jak jest garbage
+            var multipleWords = eventArgs?.Result?.Words?.Any();
+            if (multipleWords.HasValue && multipleWords.Value)
+            {
+                var multiwordValue = string.Join(" ", eventArgs.Result.Words.Where(w => w.LexicalForm != "..." && !string.IsNullOrEmpty(w.Pronunciation)).Select(s => s.Text));
+                return multiwordValue;
+            }
+
+            return eventArgs.Result.Text;
         }
 
         public bool StartRecognition(AnswerModel answerModel, string xmlGrammar, bool multipleRecognitions = false)

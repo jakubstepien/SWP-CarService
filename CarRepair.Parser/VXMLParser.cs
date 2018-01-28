@@ -216,12 +216,14 @@ namespace CarRepair.Parser
                 }
             }
             var sb = new StringBuilder("<grammar root=\"top\"><rule id=\"top\">");
+            sb.AppendLine("<ruleref special=\"GARBAGE\" />");
             sb.AppendLine("<one-of>");
             foreach (var option in options)
             {
                 sb.AppendLine("<item>" + option + "</item>");
             }
             sb.AppendLine("</one-of>");
+            sb.AppendLine("<ruleref special=\"GARBAGE\" />");
             sb.AppendLine("</rule></grammar>");
             var xml = sb.ToString();
             var ok = GrammarValidator.ValidateAndFixGrammar(ref xml);
