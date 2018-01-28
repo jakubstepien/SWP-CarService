@@ -10,6 +10,7 @@ namespace CarRepair.Parser.Models
     {
         RegularField,
         Record,
+        Var
     }
 
     public class Field

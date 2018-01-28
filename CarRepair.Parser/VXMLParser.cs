@@ -52,6 +52,8 @@ namespace CarRepair.Parser
                             return ParseField(s);
                         case "record":
                             return ParseRecord(s);
+                        case "var":
+                            return ParseVar(s);
                         default:
                             return null;
                     }
@@ -59,6 +61,15 @@ namespace CarRepair.Parser
                 .Where(w => w != null)
                 .ToArray();
             return form;
+        }
+
+        private Field ParseVar(XElement fieldElement)
+        {
+            return new Field
+            {
+                FieldType = FieldType.Var,
+                Name = fieldElement.GetAttributeByName("name")?.Value?.Trim(),
+            };
         }
 
         private Field ParseField(XElement fieldElement)

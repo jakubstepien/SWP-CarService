@@ -7,8 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CarRepair.ASR.Models;
-using System.Speech.Recognition;
-using System.Speech.Recognition.SrgsGrammar;
+using Microsoft.Speech.Recognition;
+using Microsoft.Speech.Recognition.SrgsGrammar;
 using System.Configuration;
 
 namespace CarRepair.ASR
@@ -42,23 +42,15 @@ namespace CarRepair.ASR
             var x = SpeechRecognitionEngine.InstalledRecognizers();
             sre = new SpeechRecognitionEngine(this.culture);
             sre.SetInputToDefaultAudioDevice();
-            sre.SpeechRecognized += HandleSpeechRecognized;
-            sre.SpeechRecognitionRejected += HandleNotRecognized;
-
-#if DEBUG
+            sre.RecognizeCompleted += HandleSpeechCompleted;
+            sre.SpeechRecognitionRejected += (s,e)=>
+            {
+                Console.WriteLine("Rejected");
+            };
             sre.SpeechRecognized += (s, e) =>
             {
                 Console.WriteLine("SpeechRecognized: " + e.Result?.Text);
             };
-#endif
-        }
-
-        private void HandleNotRecognized(object sender, SpeechRecognitionRejectedEventArgs e)
-        {
-#if DEBUG
-            Console.WriteLine("Rejected");
-#endif
-            SpeechNotRecognized?.Invoke(this, new EventArgs());
         }
 
         #endregion
@@ -67,15 +59,22 @@ namespace CarRepair.ASR
 
         public event EventHandler SpeechNotRecognized;
 
-        private void HandleSpeechRecognized(object sender, SpeechRecognizedEventArgs eventArgs)
+        private void HandleSpeechCompleted(object sender, RecognizeCompletedEventArgs eventArgs)
         {
-            var answer = new AnswerSelectedEventArgs
+            if(eventArgs.Result is null)
             {
-                Result = true,
-                FieldName = currentAnswer.FieldName,
-                SelectedAnswer = eventArgs?.Result?.Semantics?.Value?.ToString() ?? eventArgs.Result.Text,
-            };
-            SpeechRecognized?.Invoke(this, answer);
+                SpeechNotRecognized?.Invoke(this, new EventArgs());
+            }
+            else
+            {
+                var answer = new AnswerSelectedEventArgs
+                {
+                    Result = true,
+                    FieldName = currentAnswer.FieldName,
+                    SelectedAnswer = eventArgs?.Result?.Semantics?.Value?.ToString() ?? eventArgs.Result.Text,
+                };
+                SpeechRecognized?.Invoke(this, answer);
+            }
         }
 
         public bool StartRecognition(AnswerModel answerModel, string xmlGrammar, bool multipleRecognitions = false)

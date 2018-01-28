@@ -79,7 +79,7 @@
     </field>
 
     <var name ="cost"/>
-    <var name = "data"/>
+    <var name = "date"/>
 
     <field name = "cenaNaprawy" >
       <grammar root ="top">
@@ -113,7 +113,7 @@
         </rule>
       </grammar>
       <prompt>
-        Available repar date is <value expr="data"/>, Is it acceptable?
+        Available repair date is <value expr="date"/>, Is it acceptable?
       </prompt>
 
       <filled>

@@ -37,11 +37,21 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
     <Reference Include="Jint, Version=0.0.0.0, Culture=neutral, PublicKeyToken=2e92ba9c8d81157f, processorArchitecture=MSIL">
       <HintPath>..\packages\Jint.2.11.58\lib\net451\Jint.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
+    <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.4.0\lib\net461\System.ValueTuple.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -61,6 +71,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Engine\AppEngine.cs" />
+    <Compile Include="Engine\DbDataHandler.cs" />
     <Compile Include="Engine\Events\DialogFinishedEvent.cs" />
     <Compile Include="Engine\Javascript\Interpreter.cs" />
     <Compile Include="Utils\BoolVisibilityConverter.cs" />
@@ -147,6 +158,10 @@
     <ProjectReference Include="..\CarRepair.ASR\CarRepair.ASR.csproj">
       <Project>{88f6932b-ca5c-4430-9adb-77a91e6da6f6}</Project>
       <Name>CarRepair.ASR</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CarRepair.Db\CarRepair.Db.csproj">
+      <Project>{965e9667-5b8c-4107-a52f-13408bc052cf}</Project>
+      <Name>CarRepair.Db</Name>
     </ProjectReference>
     <ProjectReference Include="..\CarRepair.Parser\CarRepair.Parser.csproj">
       <Project>{57c3ce6c-bbed-4200-be4f-18f9377374a9}</Project>

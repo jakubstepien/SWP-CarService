@@ -18,9 +18,9 @@ namespace CarRepair.Engine
         Dictionary<string, Form[]> filesForms = new Dictionary<string, Form[]>();
         string currentFile = "app-root.vxml";
         string currentForm = "";
-        string nextField = "";
 
         public bool IsDialogFinished { get; private set; } = false;
+        public Dictionary<string, string> AnswersCopy { get { return new Dictionary<string, string>(answers); } }
 
         public event EventHandler<DialogFinishedEvent> DialogFinished;
 
@@ -33,9 +33,15 @@ namespace CarRepair.Engine
             IsDialogFinished = false;
         }
 
-        public DialogViewModel GetQuestion()
+        public DialogViewModel GetQuestion(out List<string> dbValues)
         {
+            dbValues = new List<string>();
             Field field = GetNextField();
+            while (field.FieldType == FieldType.Var)
+            {
+                dbValues.Add(field.Name);
+                field = GetNextField(dbValues.ToArray());
+            }
             if (field.FieldType == FieldType.Record)
             {
                 return GetRecordQuestion(field);
@@ -70,6 +76,12 @@ namespace CarRepair.Engine
             return question;
         }
 
+        public void ReLoadPompt(DialogViewModel dialog)
+        {
+            var field = filesForms.Values.SelectMany(s => s).SelectMany(s => s.Fields).FirstOrDefault(f => f.Name == dialog.FieldName);
+            dialog.Question = GetPrompt(field);
+        }
+
         private string GetPrompt(Field field)
         {
             const string valueRegex = "@@(.*?)@@";
@@ -84,17 +96,11 @@ namespace CarRepair.Engine
             return newPrompt;
         }
 
-        private Field GetNextField()
+        private Field GetNextField(string[] fieldsToExclude = null)
         {
+            fieldsToExclude = fieldsToExclude ?? new string[0];
             var form = filesForms[currentFile].FirstOrDefault(f => f.Id == currentForm);
-            if (string.IsNullOrEmpty(nextField))
-            {
-                return form.Fields.First();
-            }
-            else
-            {
-                return form.Fields.First(f => f.Name == nextField);
-            }
+            return form.Fields.Where(w => (!answers.ContainsKey(w.Name) && !fieldsToExclude.Contains(w.Name)) && CheckCond(w)).FirstOrDefault();
         }
 
         public void AddAnswer(string fieldName, string answer)
@@ -110,24 +116,25 @@ namespace CarRepair.Engine
             var form = filesForms[currentFile].First(w => w.Id == currentForm);
             var field = form.Fields.First(f => f.Name == fieldName);
 
-            //uruchom ify
-            var jsInterpreter = new Javascript.Interpreter();
-            var ifsToRun = field.Filled.Where(w => jsInterpreter.GetCondResult(w.Cond, answers));
-
-            //Jak dojdą kolejne ify to trzeba dodać obsługe, dla other nic nie robimy?
-            var exitIf = ifsToRun.FirstOrDefault(a => a.Type == FilledIfType.ExitIf);
-            if (exitIf != null)
+            //uruchom ify jeśli są
+            if(field.Filled != null)
             {
-                IsDialogFinished = true;
-                DialogFinished?.Invoke(this, new DialogFinishedEvent { Prompt = exitIf.Prompt });
-                nextField = "";
-                return;
+                var jsInterpreter = new Javascript.Interpreter();
+                var ifsToRun = field.Filled.Where(w => jsInterpreter.GetCondResult(w.Cond, answers));
+
+                //Jak dojdą kolejne ify to trzeba dodać obsługe, dla other nic nie robimy?
+                var exitIf = ifsToRun.FirstOrDefault(a => a.Type == FilledIfType.ExitIf);
+                if (exitIf != null)
+                {
+                    IsDialogFinished = true;
+                    DialogFinished?.Invoke(this, new DialogFinishedEvent { Prompt = exitIf.Prompt });
+                    return;
+                }
             }
 
             //ustaw następne pole
-            var nextFieldInForm = form.Fields.Where(w => !answers.ContainsKey(w.Name) && CheckCond(w)).FirstOrDefault();
-            nextField = nextFieldInForm?.Name;
-            if(nextFieldInForm is null)
+            var nextFieldInForm = GetNextField();
+            if (nextFieldInForm is null)
             {
                 IsDialogFinished = true;
                 DialogFinished?.Invoke(this, new DialogFinishedEvent());

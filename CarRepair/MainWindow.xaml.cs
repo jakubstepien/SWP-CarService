@@ -52,15 +52,24 @@ namespace CarRepair
         {
             await Task.Run(() =>
             {
-                tts.Speak(viewModel.Dialog.ErrorMessage ?? "Not recoginized");
+                tts.Speak(viewModel.Dialog.ErrorMessage ?? "Not recognized");
                 StartRecognitionOfCurrentQuestion();
             });
         }
 
         private void SpeechRecognized(object sender, ASR.Events.AnswerSelectedEventArgs e)
         {
-            currentVarrialbes.Varriables.Items.Add(new { Name = e.FieldName, Value = e.SelectedAnswer });
-            SetNewQuestion(e);
+            var dbHandler = new DbDataHandler();
+            var success = dbHandler.Handle(engine.AnswersCopy, new KeyValuePair<string, string>(e.FieldName, e.SelectedAnswer));
+            if (success.Success)
+            {
+                currentVarrialbes.Varriables.Items.Add(new { Name = e.FieldName, Value = e.SelectedAnswer });
+                SetNewQuestion(e);
+            }
+            else
+            {
+                SpeechNotRecognized(this, new EventArgs());
+            }
         }
 
         private void StartEngine(object sender, RoutedEventArgs e)
@@ -87,7 +96,18 @@ namespace CarRepair
                 }
                 if (!engine.IsDialogFinished)
                 {
-                    viewModel.Dialog = engine.GetQuestion();
+                    var dbValuesRequired = new List<string>();
+                    var dbHandler = new DbDataHandler();
+                    var dialog = engine.GetQuestion(out dbValuesRequired);
+                    foreach (var value in dbValuesRequired)
+                    {
+                        engine.AddAnswer(value, dbHandler.GetVarValue(value, engine.AnswersCopy));
+                    }
+                    if(dbValuesRequired != null && dbValuesRequired.Any())
+                    {
+                        engine.ReLoadPompt(dialog);
+                    }
+                    viewModel.Dialog = dialog;
                     StartRecognitionOfCurrentQuestion();
                     tts.Speak(viewModel.Dialog.Question);
                 }
