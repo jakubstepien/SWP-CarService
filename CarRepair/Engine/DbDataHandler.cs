@@ -78,7 +78,10 @@ namespace CarRepair.Engine
                 var descripton = new StringBuilder($"Usterka  - {fault}: ");
                 foreach (var additionalData in faultData[fault].Fields)
                 {
-                    descripton.AppendLine(additionalData);
+                    if (dialogData.ContainsKey(additionalData))
+                    {
+                        descripton.AppendLine(additionalData + ":" + dialogData[additionalData]);
+                    }
                 }
                 var pin = string.Join("", dialogData["pin"].Split(' '));
                 var brand = dialogData["marka"];

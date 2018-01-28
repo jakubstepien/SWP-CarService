@@ -237,7 +237,7 @@ namespace CarRepair.Parser
 
         private RuleItem ParseOneOfGrammar(XElement xElement)
         {
-            var items = xElement.GetElementsByName("item").Select(s => new RuleItem { Content = s.Value.Trim() });
+            var items = xElement.GetElementsByName("item").Select(s => new RuleItem { Content = s.FirstNode.ToString() });
             return new OneOfRule
             {
                 Content = string.Join(";", items),

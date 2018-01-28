@@ -44,8 +44,20 @@
       </grammar>
     </field>
 
-    <field name = "drzwi" cond ="usterka=='doors'"  type="digits">
+    <field name = "drzwi" cond ="usterka=='doors'">
       <prompt>Say door number going clockwise from driver's seat.</prompt>
+      <grammar version="1.0" xmlns="http://www.w3.org/2001/06/grammar" tag-format="semantics/1.0" root="top">
+        <rule id="top">
+          <ruleref special="GARBAGE" />
+          <one-of>
+              <item>1</item>
+              <item>2</item>
+              <item>3</item>
+              <item>4</item>
+            </one-of>
+          <ruleref special="GARBAGE" />
+        </rule>
+      </grammar>
     </field>
 
     <field name = "spalanie" cond ="usterka=='engine'" type ="number">
@@ -85,12 +97,13 @@
     <var name = "date"/>
 
     <field name = "cenaNaprawy" >
-      <grammar root ="top">
+      <grammar root ="top" tag-format="semantics/1.0">
         <rule id="top">
           <ruleref special="GARBAGE" />
           <one-of>
             <item>yes</item>
             <item>no</item>
+            <item>absolutely<tag>out = 'yes';</tag></item>
           </one-of>
           <ruleref special="GARBAGE" />
         </rule>
@@ -109,11 +122,12 @@
 
 
     <field name = "dataNaprawy" >
-      <grammar root ="top">
+      <grammar root ="top" tag-format="semantics/1.0">
         <rule id="top">
           <ruleref special="GARBAGE" />
           <one-of>
             <item>yes</item>
+            <item>absolutely<tag>out = 'yes';</tag></item>
             <item>no</item>
           </one-of>
           <ruleref special="GARBAGE" />
@@ -133,11 +147,13 @@
 
     <field name="maKonto">
       <prompt>Do you have an account here?</prompt>
-      <grammar root ="top">
+      <grammar root ="top" tag-format="semantics/1.0">
         <rule id="top">
           <ruleref special="GARBAGE" />
           <one-of>
             <item>yes</item>
+            <item>do<tag>out = 'yes';</tag></item>
+            <item>don't<tag>out = 'no';</tag></item>
             <item>no</item>
           </one-of>
           <ruleref special="GARBAGE" />
