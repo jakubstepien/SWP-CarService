@@ -23,8 +23,6 @@ namespace CarRepair.Engine
         public bool IsDialogFinished { get; private set; } = false;
         public Dictionary<string, string> AnswersCopy { get { return new Dictionary<string, string>(answers); } }
 
-        public event EventHandler<DialogFinishedEvent> DialogFinished;
-
         public void Init()
         {
             var parser = new Parser.VXMLParser();
@@ -34,22 +32,32 @@ namespace CarRepair.Engine
             IsDialogFinished = false;
         }
 
-        public DialogViewModel GetQuestion(out List<string> dbValues)
+        public (DialogViewModel Model, string OtherText) GetQuestion(out List<string> dbValues)
         {
+            var otherInfo = new List<string>();
             dbValues = new List<string>();
             Field field = GetNextField();
-            while (field.FieldType == FieldType.Var)
+            while (field != null && field.FieldType != FieldType.RegularField)
             {
-                dbValues.Add(field.Name);
+                if(field.FieldType == FieldType.Var)
+                {
+                    dbValues.Add(field.Name);
+                }
+                else if(field.FieldType == FieldType.Block)
+                {
+                    otherInfo.Add(GetPrompt(field.Prompt));
+                    //block dodany do wypowiedzi dodawnay jest do wykożystanych
+                    answers.Add(field.Name, "true");
+                }
                 field = GetNextField(dbValues.ToArray());
             }
-            if (field.FieldType == FieldType.Record)
+            if(field is null)
             {
-                return GetRecordQuestion(field);
+                return (null, string.Join(".",otherInfo));
             }
             var question = new DialogViewModel
             {
-                Question = GetPrompt(field),
+                Question = GetPrompt(field.Prompt),
                 FieldName = field.Name,
                 ErrorMessage = field.NoMatchErrorPrompt,
                 XMLGrammar = field.Grammar.XMLGrammar,
@@ -74,19 +82,19 @@ namespace CarRepair.Engine
                     Label = rule.Items[0].Content,
                 };
             }
-            return question;
+            return (question, string.Join(".", otherInfo));
         }
 
         public void ReLoadPompt(DialogViewModel dialog)
         {
             var field = filesForms.Values.SelectMany(s => s).SelectMany(s => s.Fields).FirstOrDefault(f => f.Name == dialog.FieldName);
-            dialog.Question = GetPrompt(field);
+            dialog.Question = GetPrompt(field.Prompt);
         }
 
-        private string GetPrompt(Field field)
+        private string GetPrompt(string prompt)
         {
             const string valueRegex = "@@(.*?)@@";
-            var newPrompt = Regex.Replace(field.Prompt, valueRegex, m => {
+            var newPrompt = Regex.Replace(prompt, valueRegex, m => {
                 var val = m.Groups[1].Value;
                 if (answers.ContainsKey(val))
                 {
@@ -129,7 +137,6 @@ namespace CarRepair.Engine
                 if (exitIf != null)
                 {
                     IsDialogFinished = true;
-                    DialogFinished?.Invoke(this, new DialogFinishedEvent { Prompt = exitIf.Prompt });
                     return info;
                 }
 
@@ -150,7 +157,6 @@ namespace CarRepair.Engine
             if (nextFieldInForm is null)
             {
                 IsDialogFinished = true;
-                DialogFinished?.Invoke(this, new DialogFinishedEvent());
             }
             return info;
         }
@@ -163,12 +169,6 @@ namespace CarRepair.Engine
             }
             var jsInterpreter = new Javascript.Interpreter();
             return jsInterpreter.GetCondResult(field.Cond, answers);
-        }
-
-
-        private DialogViewModel GetRecordQuestion(Field field)
-        {
-            throw new NotImplementedException();
         }
     }
 }

@@ -45,7 +45,6 @@ namespace CarRepair
             asr.SpeechRecognized += SpeechRecognized;
             asr.SpeechNotRecognized += SpeechNotRecognized;
             Loaded += StartEngine;
-            engine.DialogFinished += HandleDialogFinished;
         }
 
         private async void SpeechNotRecognized(object sender, EventArgs e)
@@ -60,12 +59,17 @@ namespace CarRepair
         private void SpeechRecognized(object sender, ASR.Events.AnswerSelectedEventArgs e)
         {
             var dbHandler = new DbDataHandler();
-            var success = dbHandler.Handle(engine.AnswersCopy, new KeyValuePair<string, string>(e.FieldName, e.SelectedAnswer));
-            if (success.Success)
+            var result = dbHandler.Handle(engine.AnswersCopy, new KeyValuePair<string, string>(e.FieldName, e.SelectedAnswer));
+            if (result.Success)
             {
+                foreach (var newValue in result.ValuesToAdd)
+                {
+                    engine.AddAnswer(newValue.Key, newValue.Value);
+                }
                 SetNewQuestion(e);
                 currentVarrialbes.Varriables.Items.Clear();
-                foreach (var field in engine.AnswersCopy)
+                var answers = engine.AnswersCopy.ToArray();
+                foreach (var field in answers)
                 {
                     currentVarrialbes.Varriables.Items.Add(new { Name = field.Key, Value = field.Value });
                 }
@@ -84,13 +88,6 @@ namespace CarRepair
             SetNewQuestion();
         }
 
-        private void HandleDialogFinished(object sender, DialogFinishedEvent e)
-        {
-            viewModel.DialogRunning = false;
-            viewModel.InfoText = string.IsNullOrEmpty(e.Prompt) ? "You have been registered for repair." : e.Prompt;
-            tts.Speak(viewModel.InfoText);
-        }
-
         private Task SetNewQuestion(ASR.Events.AnswerSelectedEventArgs previousAnswer = null)
         {
             return Task.Run(() =>
@@ -105,17 +102,36 @@ namespace CarRepair
                     var dbValuesRequired = new List<string>();
                     var dbHandler = new DbDataHandler();
                     var dialog = engine.GetQuestion(out dbValuesRequired);
+                    if (!string.IsNullOrEmpty(dialog.OtherText))
+                    {
+                        tts.Speak(dialog.OtherText);
+                    }
                     foreach (var value in dbValuesRequired)
                     {
                         engine.AddAnswer(value, dbHandler.GetVarValue(value, engine.AnswersCopy));
                     }
-                    if(dbValuesRequired != null && dbValuesRequired.Any())
+                    if (dbValuesRequired != null && dbValuesRequired.Any())
                     {
-                        engine.ReLoadPompt(dialog);
+                        engine.ReLoadPompt(dialog.Model);
                     }
-                    viewModel.Dialog = dialog;
-                    StartRecognitionOfCurrentQuestion();
-                    tts.Speak(viewModel.Dialog.Question);
+
+                    if (dialog.Model is null)
+                    {
+                        viewModel.Dialog.Question = dialog.OtherText;
+                        viewModel.Dialog.Answers = new DictationAnswerViewModel();
+                    }
+                    else
+                    {
+                        viewModel.Dialog = dialog.Model;
+                        StartRecognitionOfCurrentQuestion();
+                        tts.Speak(viewModel.Dialog.Question);
+                    }
+                }
+                else
+                {
+                    viewModel.Dialog.Question = "Goodbye";
+                    viewModel.Dialog.Answers = new DictationAnswerViewModel();
+                    tts.Speak("Goodbye");
                 }
             })
             .ContinueWith((t) =>

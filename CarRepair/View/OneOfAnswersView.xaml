@@ -14,7 +14,6 @@
         </Style>
     </UserControl.Resources>
     <ItemsControl ItemsSource="{Binding Answers}" HorizontalAlignment="Stretch">
-
         <ItemsControl.ItemTemplate>
             <DataTemplate>
                 <Border Style="{Binding Source={StaticResource MyBorderStyle}}" Margin="10 10 10 10">

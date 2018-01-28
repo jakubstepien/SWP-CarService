@@ -1,4 +1,5 @@
 ﻿using CarRepair.Db;
+using CarRepair.Engine.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,29 +10,41 @@ namespace CarRepair.Engine
 {
     public class DbDataHandler
     {
-        public (bool Success, string ErrorMsg) Handle(Dictionary<string, string> dialogData, KeyValuePair<string, string> newData)
+        public DataHandleResult Handle(Dictionary<string, string> dialogData, KeyValuePair<string, string> newData)
         {
+            //pracuj na kopi danych
             dialogData = new Dictionary<string, string>(dialogData);
+            if (dialogData.ContainsKey(newData.Key))
+            {
+                dialogData.Remove(newData.Key);
+            }
             dialogData.Add(newData.Key, newData.Value);
+            DataHandleResult addedResult = null;
             var fieldsToAddUser = new string[] { "imie", "nazwisko", "telefon" };
             if (fieldsToAddUser.All(a => dialogData.ContainsKey(a)))
             {
-                var added = AddUser(dialogData);
-                if (!added.Success)
+                addedResult = AddUser(dialogData);
+                if (!addedResult.Success)
                 {
-                    return added;
+                    return addedResult;
                 }
             }
             if (dialogData.ContainsKey("pin"))
             {
-                return AddRepiar(dialogData);
+                var repairResult = AddRepiar(dialogData);
+                return new DataHandleResult
+                {
+                    Success = repairResult.Success,
+                    Error = repairResult.Error,
+                    ValuesToAdd = repairResult.ValuesToAdd.Concat(addedResult.ValuesToAdd).ToArray()
+                };
             }
 
             //nic nie robimy
-            return (true, string.Empty);
+            return new DataHandleResult { Success = true };
         }
 
-        private (bool Success, string ErrorMsg) AddUser(Dictionary<string, string> dialogData)
+        private DataHandleResult AddUser(Dictionary<string, string> dialogData)
         {
             var name = dialogData["imie"];
             var surname = dialogData["nazwisko"];
@@ -42,16 +55,16 @@ namespace CarRepair.Engine
                 {
                     var pin = clientRepo.AddUser(name, surname, phone);
                     dialogData.Add("pin", pin);
-                    return (true, string.Empty);
+                    return new DataHandleResult { Success = true, ValuesToAdd = new [] { new KeyValuePair<string,string>("pin",pin)} };
                 }
             }
             catch (Exception e)
             {
-                return (false, e.ToString());
+                return new DataHandleResult { Success = false, Error = e.ToString() };
             }
         }
 
-        private (bool Success, string ErrorMsg) AddRepiar(Dictionary<string, string> dialogData)
+        private DataHandleResult AddRepiar(Dictionary<string, string> dialogData)
         {
             try
             {
@@ -75,12 +88,12 @@ namespace CarRepair.Engine
                 using (var repairRepo = new RepairRepository())
                 {
                     var success = repairRepo.AddRepair(pin, brand, productionYear, fault, descripton.ToString(), DateTime.Parse(date), decimal.Parse(price, System.Globalization.CultureInfo.InvariantCulture));
-                    return (success, string.Empty);
+                    return new DataHandleResult { Success = true };
                 }
             }
             catch (Exception e)
             {
-                return (false, e.ToString());
+                return new DataHandleResult { Success = false, Error = e.ToString() };
             }
         }
 

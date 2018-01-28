@@ -9,8 +9,8 @@ namespace CarRepair.Parser.Models
     public enum FieldType
     {
         RegularField,
-        Record,
-        Var
+        Var,
+        Block
     }
 
     public class Field

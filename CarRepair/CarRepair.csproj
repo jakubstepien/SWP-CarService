@@ -74,6 +74,7 @@
     <Compile Include="Engine\DbDataHandler.cs" />
     <Compile Include="Engine\Events\DialogFinishedEvent.cs" />
     <Compile Include="Engine\Javascript\Interpreter.cs" />
+    <Compile Include="Engine\Models\DataHandleResult.cs" />
     <Compile Include="Utils\BoolVisibilityConverter.cs" />
     <Compile Include="Utils\NullVisibilityConverter.cs" />
     <Compile Include="ViewModels\AnswersViewModel.cs" />

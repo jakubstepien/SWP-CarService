@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <vxml version="2.1">
   <form id="main-form">
-    <block>
+    <block name="start">
       <prompt>Welcome to car service </prompt>
     </block>
 
@@ -10,16 +10,7 @@
       <catch event="noinput nomatch">
         Sorry I didn't understand that
       </catch>
-      <grammar root="top">
-        <rule id="top">
-          <one-of>
-            <item>fiat</item>
-            <item>skoda</item>
-            <item>toyota</item>
-            <item>renault</item>
-          </one-of>
-        </rule>
-      </grammar>
+      <grammar src="db#brands" type="application/grammar-xml"/>
     </field>
 
     <field name="rocznik" type="number">
@@ -148,34 +139,24 @@
 
     <field name = "imie" cond="maKonto == 'no'">
       <prompt>Say your first name</prompt>
-      <grammar root="top">
-        <rule id="top">
-          <one-of>
-            <item>John</item>
-            <item>Kate</item>
-          </one-of>
-        </rule>
-      </grammar>
+      <grammar src="db#name" type="application/grammar-xml" />
     </field>
 
     <field name = "nazwisko" cond="maKonto == 'no'">
       <prompt>Say your last name</prompt>
-      <grammar root="top">
-        <rule id="top">
-          <one-of>
-            <item>Smith</item>
-            <item>Brown</item>
-          </one-of>
-        </rule>
-      </grammar>
+      <grammar src="db#surname" type="application/grammar-xml" />
     </field>
 
     <field name = "telefon" type ="phone" cond="maKonto == 'no'">
       <prompt>Say your phone number</prompt>
     </field>
 
+    <block name="pinInfo" cond="maKonto == 'no'">
+      <prompt>Your pin is <value expr="pin"/>
+    </prompt>
+    </block>
 
-    <block>
+    <block name="exit">
       <prompt>You have been registered for repair.</prompt>
       <exit/>
     </block>

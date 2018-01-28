@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using CarRepair.Db;
+using System.Text.RegularExpressions;
 using CarRepair.Parser.Models;
 using System.Data.SqlClient;
 using System;
@@ -50,10 +51,10 @@ namespace CarRepair.Parser
                     {
                         case "field":
                             return ParseField(s);
-                        case "record":
-                            return ParseRecord(s);
                         case "var":
                             return ParseVar(s);
+                        case "block":
+                            return ParseBlock(s);
                         default:
                             return null;
                     }
@@ -61,6 +62,18 @@ namespace CarRepair.Parser
                 .Where(w => w != null)
                 .ToArray();
             return form;
+        }
+
+        private Field ParseBlock(XElement fieldElement)
+        {
+            var field = new Field
+            {
+                Name = fieldElement.GetAttributeByName("name")?.Value?.Trim(),
+                FieldType = FieldType.Block,
+                Prompt = ParsePrompt(fieldElement),
+                Cond = fieldElement.GetAttributeByName("cond")?.Value?.Trim(),
+            };
+            return field;
         }
 
         private Field ParseVar(XElement fieldElement)
@@ -103,7 +116,7 @@ namespace CarRepair.Parser
                 string expr = "";
                 var name = "";
                 var assign = item.GetElementByName("assign");
-                if(assign != null)
+                if (assign != null)
                 {
                     type = FilledIfType.Assign;
                     expr = assign.GetAttributeByName("expr").Value;
@@ -124,7 +137,7 @@ namespace CarRepair.Parser
 
         private static string ParsePrompt(XElement element)
         {
-            const string valRegex= "<value\\s*expr=\"(.*?)\"\\s*\\/>";
+            const string valRegex = "<value\\s*expr=\"(.*?)\"\\s*\\/>";
             var prompt = element.GetElementByName("prompt");
             var promptText = prompt?.Value?.Trim();
             //jedyny element jaki będzie mieć to raczej val
@@ -141,6 +154,12 @@ namespace CarRepair.Parser
         {
             if (type.HasValue)
                 return type.Value.LoadGrammar();
+
+            var src = grammarElement.GetAttributeByName("src");
+            if (src != null && src.Value.StartsWith("db"))
+            {
+                return LoadExternalGramar(src.Value);
+            }
 
             var grammarXml = grammarElement.ToString();
             var isValid = GrammarValidator.ValidateAndFixGrammar(ref grammarXml);
@@ -174,6 +193,46 @@ namespace CarRepair.Parser
             return grammar;
         }
 
+        private Grammar LoadExternalGramar(string value)
+        {
+            //przycięcie db#
+            value = value.Substring(3, value.Length - 3);
+            string[] options = null;
+            using (var repo = new GramarRepository())
+            {
+                switch (value)
+                {
+                    case "brands":
+                        options = repo.GetBrandOptions();
+                        break;
+                    case "name":
+                        options = repo.GetNameOptions();
+                        break;
+                    case "surname":
+                        options = repo.GetSurnameOptions();
+                        break;
+                    default:
+                        break;
+                }
+            }
+            var sb = new StringBuilder("<grammar root=\"top\"><rule id=\"top\">");
+            sb.AppendLine("<one-of>");
+            foreach (var option in options)
+            {
+                sb.AppendLine("<item>" + option + "</item>");
+            }
+            sb.AppendLine("</one-of>");
+            sb.AppendLine("</rule></grammar>");
+            var xml = sb.ToString();
+            var ok = GrammarValidator.ValidateAndFixGrammar(ref xml);
+            var grammar = new Grammar
+            {
+                Rules = new[] { new Rule { Items = new[] { new OneOfRule { Items = options.Select(s => new RuleItem { Content = s }).ToArray() } } } },
+                XMLGrammar = xml,
+            };
+            return grammar;
+        }
+
         private RuleItem ParseOneOfGrammar(XElement xElement)
         {
             var items = xElement.GetElementsByName("item").Select(s => new RuleItem { Content = s.Value.Trim() });
@@ -182,11 +241,6 @@ namespace CarRepair.Parser
                 Content = string.Join(";", items),
                 Items = items.ToArray()
             };
-        }
-
-        private Field ParseRecord(XElement fieldElement)
-        {
-            throw new NotImplementedException();
         }
 
         private Form ParseMixedInitativeForm(XElement formElement)

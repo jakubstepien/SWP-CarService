@@ -60,5 +60,11 @@
     <Compile Include="Utils\XElementExtensions.cs" />
     <Compile Include="VXMLParser.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CarRepair.Db\CarRepair.Db.csproj">
+      <Project>{965e9667-5b8c-4107-a52f-13408bc052cf}</Project>
+      <Name>CarRepair.Db</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

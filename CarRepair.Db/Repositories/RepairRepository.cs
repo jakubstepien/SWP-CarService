@@ -47,7 +47,7 @@ namespace CarRepair.Db
 
         public decimal GetPrice(string fault, string brand)
         {
-            return db.Price.FirstOrDefault(f => f.Fault.Name == fault && f.Brand.BrandName == brand).Value;
+            return db.Price.FirstOrDefault(f => f.Fault.Name == fault && f.Brand.BrandName == brand)?.Value ?? 200;
         }
 
         public void Dispose()

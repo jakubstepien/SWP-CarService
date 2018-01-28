@@ -10,6 +10,8 @@ namespace CarRepair.ViewModels
     {
         public string FieldName { get; set; }
 
+        public string AdditionalText { get; set; }
+
         private string _question;
         public string Question
         {

@@ -17,18 +17,14 @@
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="3*" />
             <RowDefinition Height="2*" />
-            <RowDefinition Height="1*" />
+            <RowDefinition Height="3*" />
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0" Margin="10 10 10 10">
-            <TextBlock Text="{Binding Question}" TextWrapping="Wrap"/>
+            <TextBlock Text="{Binding Question}" FontSize="24" TextWrapping="Wrap"/>
         </StackPanel>
-        <StackPanel Grid.Row="1" VerticalAlignment="Center">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Row="1" VerticalAlignment="Center">
             <ContentControl Content="{Binding Answers}" />
-        </StackPanel>
-        <StackPanel Grid.Row="2" VerticalAlignment="Center">
-            <Button Click="TestClick" Content="TestButton" />
-        </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

@@ -24,5 +24,9 @@ namespace CarRepair.Db
         public DbSet<Price> Price { get; set; }
 
         public DbSet<Repair> Repair { get; set; }
+
+        public DbSet<Name> Name { get; set; }
+
+        public DbSet<Surname> Surname { get; set; }
     }
 }
