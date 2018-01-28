@@ -81,10 +81,9 @@ namespace CarRepair.Parser
                 NoMatchErrorPrompt = fieldElement.GetElementByName("catch")?.Value?.Trim(),
                 Prompt = ParsePrompt(fieldElement),
                 Cond = fieldElement.GetAttributeByName("cond")?.Value?.Trim(),
-                Filled = ParseFilledIfs(fieldElement),
+                FilledIfs = ParseFilledIfs(fieldElement),
             };
             var filledElement = fieldElement.GetElementByName("filled");
-            field.GotoVariable = filledElement?.GetElementByName("goto")?.GetAttributeByName("expr")?.Value?.Trim();
             var grammar = fieldElement.GetElementByName("grammar");
             var type = fieldElement.GetAttributeByName("type")?.Value?.Trim().ToFieldGrammarType();
             field.Grammar = ParseGrammar(grammar, type);
@@ -96,13 +95,31 @@ namespace CarRepair.Parser
             var filled = field.GetElementByName("filled");
             if (filled is null)
                 return new FilledIfElement[0];
-            var ifs = filled.GetElementsByName("if").Select(s => new FilledIfElement
+
+            var ifs = new List<FilledIfElement>();
+            foreach (var item in filled.GetElementsByName("if"))
             {
-                Type = s.GetElementByName("exit") != null ? FilledIfType.ExitIf : FilledIfType.Other,
-                Cond = s.GetAttributeByName("cond").Value,
-                Prompt = ParsePrompt(s),
-            }).ToArray();
-            return ifs;
+                var type = item.GetElementByName("exit") != null ? FilledIfType.ExitIf : FilledIfType.Other;
+                string expr = "";
+                var name = "";
+                var assign = item.GetElementByName("assign");
+                if(assign != null)
+                {
+                    type = FilledIfType.Assign;
+                    expr = assign.GetAttributeByName("expr").Value;
+                    name = assign.GetAttributeByName("name").Value;
+                }
+                var element = new FilledIfElement
+                {
+                    Type = type,
+                    Cond = item.GetAttributeByName("cond").Value,
+                    Prompt = ParsePrompt(item),
+                    Expr = expr,
+                    Name = name,
+                };
+                ifs.Add(element);
+            }
+            return ifs.ToArray();
         }
 
         private static string ParsePrompt(XElement element)

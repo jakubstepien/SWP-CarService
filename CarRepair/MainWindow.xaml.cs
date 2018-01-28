@@ -63,8 +63,13 @@ namespace CarRepair
             var success = dbHandler.Handle(engine.AnswersCopy, new KeyValuePair<string, string>(e.FieldName, e.SelectedAnswer));
             if (success.Success)
             {
-                currentVarrialbes.Varriables.Items.Add(new { Name = e.FieldName, Value = e.SelectedAnswer });
                 SetNewQuestion(e);
+                currentVarrialbes.Varriables.Items.Clear();
+                foreach (var field in engine.AnswersCopy)
+                {
+                    currentVarrialbes.Varriables.Items.Add(new { Name = field.Key, Value = field.Value });
+                }
+                CollectionViewSource.GetDefaultView(currentVarrialbes.Varriables.Items).Refresh();
             }
             else
             {
@@ -92,7 +97,8 @@ namespace CarRepair
             {
                 if (previousAnswer != null)
                 {
-                    engine.AddAnswer(previousAnswer.FieldName, previousAnswer.SelectedAnswer);
+                    var info = engine.AddAnswer(previousAnswer.FieldName, previousAnswer.SelectedAnswer);
+                    tts.Speak(string.Join(".", info));
                 }
                 if (!engine.IsDialogFinished)
                 {

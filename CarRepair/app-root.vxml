@@ -27,6 +27,12 @@
       <catch event="noinput nomatch">
         Sorry I didn't understand that
       </catch>
+      <filled>
+        <if cond="parseInt(rocznik) > 2018">
+          <prompt>Invalid production year</prompt>
+          <assign name="rocznik" expr="null" />
+        </if>
+      </filled>
     </field>
 
     <field name="usterka" >

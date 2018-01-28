@@ -21,14 +21,12 @@ namespace CarRepair.Parser.Models
 
         public string NoMatchErrorPrompt { get; set; }
 
-        public string GotoVariable { get; set; }
-
         public FieldType FieldType { get; set; }
 
         public Grammar Grammar { get; set; }
 
         public string Cond { get; set; }
 
-        public FilledIfElement[] Filled { get; set; }
+        public FilledIfElement[] FilledIfs { get; set; }
     }
 }

@@ -12,8 +12,12 @@ namespace CarRepair.Parser.Models
 
         public string Prompt { get; set; }
 
+        public string Expr { get; set; }
+
+        public string Name { get; set; }
+
         public FilledIfType Type { get; set; }
     }
 
-    public enum FilledIfType { Other, ExitIf }
+    public enum FilledIfType { Other, ExitIf, Assign }
 }

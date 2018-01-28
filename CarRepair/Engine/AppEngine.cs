@@ -1,4 +1,5 @@
-﻿using CarRepair.Engine.Events;
+﻿using System.IO;
+using CarRepair.Engine.Events;
 using Jint.Native;
 using System.Text.RegularExpressions;
 using CarRepair.ViewModels;
@@ -103,8 +104,9 @@ namespace CarRepair.Engine
             return form.Fields.Where(w => (!answers.ContainsKey(w.Name) && !fieldsToExclude.Contains(w.Name)) && CheckCond(w)).FirstOrDefault();
         }
 
-        public void AddAnswer(string fieldName, string answer)
+        public List<string> AddAnswer(string fieldName, string answer)
         {
+            var info = new List<string>();
             //dodaj odpowiedz
             if (answers.ContainsKey(fieldName))
             {
@@ -117,10 +119,10 @@ namespace CarRepair.Engine
             var field = form.Fields.First(f => f.Name == fieldName);
 
             //uruchom ify jeśli są
-            if(field.Filled != null)
+            if(field.FilledIfs != null)
             {
                 var jsInterpreter = new Javascript.Interpreter();
-                var ifsToRun = field.Filled.Where(w => jsInterpreter.GetCondResult(w.Cond, answers));
+                var ifsToRun = field.FilledIfs.Where(w => jsInterpreter.GetCondResult(w.Cond, answers));
 
                 //Jak dojdą kolejne ify to trzeba dodać obsługe, dla other nic nie robimy?
                 var exitIf = ifsToRun.FirstOrDefault(a => a.Type == FilledIfType.ExitIf);
@@ -128,7 +130,18 @@ namespace CarRepair.Engine
                 {
                     IsDialogFinished = true;
                     DialogFinished?.Invoke(this, new DialogFinishedEvent { Prompt = exitIf.Prompt });
-                    return;
+                    return info;
+                }
+
+                foreach (var assignIf in ifsToRun.Where(w => w.Type == FilledIfType.Assign))
+                {
+                    var newValue = jsInterpreter.GetAssignScriptResult(assignIf.Expr, assignIf.Name, answers);
+                    answers.Remove(assignIf.Name);
+                    if(newValue != null)
+                    {
+                        answers.Add(assignIf.Name, newValue);
+                    }
+                    info.Add(assignIf.Prompt);
                 }
             }
 
@@ -139,6 +152,7 @@ namespace CarRepair.Engine
                 IsDialogFinished = true;
                 DialogFinished?.Invoke(this, new DialogFinishedEvent());
             }
+            return info;
         }
 
         private bool CheckCond(Field field)
